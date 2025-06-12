@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,66 @@
     <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    
+    <div class="container">
+        <header>
+            <h2>Monster Collection</h2>
+            <p>Explore the details of your selected monster</p>
+        </header>
+        <div class="show-detail-container">
+            <div class="mons-picter">
+                <img id="detailPicture" src="" alt="">
+            </div>
+            <div class="mons-info">
+                <div id="monsterInfo" class="top-content">
+                    <h4 id="monsterName"></h4>
+                    <p>level: <span id="level"></span></p>
+                    <p>size: <span id="size"></span></p>
+                    <p>race: <span id="race"></span></p>
+                    <p>type: <span id="type"></span></p>
+                </div>
+                <div id="dropsItemContainer" class="bottom-content">
+                    <!-- <div class="drop-item-box">
+                        <img src="http://db.irowiki.org/image/item/990.png" alt="">
+                        <p>0.71%</p>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+        <div id="otherMonster" class="mons-other-container">
+            <!-- <div class="mons-box">
+                <img src="http://db.irowiki.org/image/monster/1002.png" alt="">
+                <p>Poring</p>
+            </div> -->
+        </div>
+        <div class="page-control-container">
+            <div class="page-arrow-left page-box">
+                <p>&lt;&lt;</p>
+            </div>
+            <div class="page-arrow-left page-box">
+                <p>&lt;</p>
+            </div>
+            <div class="page-number-container">
+                <div class="page-box box-number">
+                    <p>1</p>
+                </div>
+                <div class="page-box box-number">
+                    <p>2</p>
+                </div>
+                <div class="page-box box-number">
+                    <p>..</p>
+                </div>
+            </div>
+            <div class="page-arrow-left page-box">
+                <p>&gt;</p>
+            </div>
+            <div class="page-arrow-left page-box">
+                <p>&gt;&gt;</p>
+            </div>
+        </div>
+    </div>
 </body>
+<script src="script.js"></script>
+
 </html>
