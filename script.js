@@ -8,23 +8,18 @@ let monsterSize = document.getElementById('size')
 let monsterRace = document.getElementById('race')
 let monsterType = document.getElementById('type')
 
+let pageNumberContainer = document.getElementById('pageNumberContainer')
+
+let monsterDatas = []
 
 
 let quantityOfMonsterbox = calQuantityMonsBox()
-const dataToSend = {
-    boxContain: quantityOfMonsterbox
-}
+
+let page
 
 
 
-
-fetch('http://localhost:3000/api/monsters', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(dataToSend)
-})
+fetch('http://localhost:3000/api/monsters')
     .then(response => {
         if (!response.ok) {
             return response.json().then(err => {
@@ -35,30 +30,19 @@ fetch('http://localhost:3000/api/monsters', {
         return response
     })
     .then(data => {
-
-
-
         console.log(data)
         monsterDatas = monsterCheck(data)
         console.log(monsterDatas)
         showDetail(monsterDatas[0].monster_id)
-
-        otherMonster.innerHTML = '';
-
-        for (let i = 0; i < quantityOfMonsterbox; i++) {
-            let monsterName = manipulationMonsterName(monsterDatas[i].monster_info)
-            const monsBox = ` <div class="mons-box" data-monster-id="${monsterDatas[i].monster_id}">
-                                <img src="${monsterDatas[i].gif}" alt="">
-                                <p>${monsterName}</p>
-                              </div> `
-            otherMonster.insertAdjacentHTML('beforeend', monsBox);
-        }
-
-
+        displayMonstersForPage(1)
 
     })
 
-
+window.addEventListener("resize", (event) => {
+    quantityOfMonsterbox = calQuantityMonsBox()
+    displayMonstersForPage(currentPage)
+    
+})
 
 
 
@@ -93,29 +77,9 @@ function monsterCheck(data) {
 }
 
 function showDetail(id) {
-    // console.log(id)
-
-    // showDetailMonster.src = monsterDatas[0].gif
-    // monsterName.textContent = manipulationMonsterName(monsterDatas[0].monster_info)
-    // monsterLevel.textContent = monsterDatas[0].main_stats.level
-    // monsterSize.textContent = monsterDatas[0].size
-    // monsterRace.textContent = monsterDatas[0].race
-    // monsterType.textContent = monsterDatas[0].type
-    // let dropsItemContainer = document.getElementById('dropsItemContainer')
-    // let dropsItem = monsterDatas[0].drops
-
-    // dropsItemContainer.innerHTML = '';
-    // let dropsItemHtml = '';
-    // for (let i = 0; i < dropsItem.length; i++) {
-    //     dropsItemHtml += `<div class="drop-item-box">
-    //     <img src="${dropsItem[i].img}" alt="">
-    //     <p>${dropsItem[i].rate}%</p>
-    //     </div> `
-    // }
-    // dropsItemContainer.innerHTML = dropsItemHtml
     for (mons of monsterDatas) {
         if (mons.monster_id == id) {
-            console.log(mons)
+
             showDetailMonster.src = mons.gif
 
             monsterName.textContent = manipulationMonsterName(mons.monster_info)
@@ -139,6 +103,20 @@ function showDetail(id) {
     }
 }
 
+function monsterBox(monstersToDisplay) {
+
+    otherMonster.innerHTML = '';
+
+    monstersToDisplay.forEach(monster => {
+        let monsterName = manipulationMonsterName(monster.monster_info)
+        const monsBox = ` <div class="mons-box" data-monster-id="${monster.monster_id}">
+                                <img src="${monster.gif}" alt="">
+                                <p>${monsterName}</p>
+                              </div> `
+        otherMonster.insertAdjacentHTML('beforeend', monsBox);
+    })
+}
+
 otherMonster.addEventListener('click', function (event) {
     const clickedMonsterBox = event.target.closest('.mons-box')
     if (clickedMonsterBox) {
@@ -153,3 +131,111 @@ otherMonster.addEventListener('click', function (event) {
 
     }
 })
+
+
+
+
+pageNumberContainer.addEventListener('click', function (event) {
+    const clickedPageNumberBox = event.target.closest('.box-number')
+
+    let pageNumber = pageNumberContainer.children
+    for (let i = 0; i < pageNumber.length; i++) {
+        pageNumber[i].classList.remove('active')
+    }
+
+    clickedPageNumberBox.classList.add('active')
+    page = clickedPageNumberBox.dataset.pageNumber
+    displayMonstersForPage(page)
+
+    if (clickedPageNumberBox.classList.contains('box-number') && clickedPageNumberBox.dataset.pageNumber) {
+        const newPage = parseInt(clickedPageNumberBox.dataset.pageNumber, 10);
+        if (!isNaN(newPage)) { 
+            currentPage = newPage; 
+            displayMonstersForPage(currentPage); 
+            renderPaginationControls(); 
+        }
+    }
+
+    else if (clickedPageNumberBox.classList.contains('page-arrow-left') && clickedPageNumberBox.dataset.pageAction === 'prev-set') {
+        firstPageInCurrentSet = Math.max(1, firstPageInCurrentSet - numPagesToShow);
+        currentPage = firstPageInCurrentSet; 
+        displayMonstersForPage(currentPage); 
+        renderPaginationControls(); 
+    }
+    else if (clickedPageNumberBox.classList.contains('page-arrow-right') && clickedPageNumberBox.dataset.pageAction === 'next-set') {
+        const totalPages = getTotalPages();
+        firstPageInCurrentSet = Math.min(firstPageInCurrentSet + numPagesToShow, totalPages);
+        if (firstPageInCurrentSet > totalPages) {
+            firstPageInCurrentSet = totalPages - (totalPages % numPagesToShow) + 1;
+            if (totalPages % numPagesToShow === 0 && numPagesToShow > 0) { 
+                firstPageInCurrentSet = totalPages - numPagesToShow + 1;
+            }
+        }
+
+        currentPage = firstPageInCurrentSet; 
+        displayMonstersForPage(currentPage); 
+        renderPaginationControls();
+    }
+    
+    })
+
+let currentPage = 1;
+let firstPageInCurrentSet = 1;
+const numPagesToShow = 3;
+
+function getTotalPages() {
+    return Math.ceil(monsterDatas.length / quantityOfMonsterbox);
+}
+
+function displayMonstersForPage(pageNumber) {
+
+    const startIndex = (pageNumber - 1) * quantityOfMonsterbox;
+    const endIndex = startIndex + quantityOfMonsterbox;
+    const monstersToDisplay = monsterDatas.slice(startIndex, endIndex);
+
+
+    monsterBox(monstersToDisplay);
+}
+
+function renderPaginationControls() {
+    pageNumberContainer.innerHTML = '';
+
+    const totalPages = getTotalPages();
+    if (totalPages === 0) {
+        pageNumberContainer.innerHTML = '<p>No pages available.</p>';
+        return;
+    }
+
+    const displayStartPage = firstPageInCurrentSet;
+    const displayEndPage = Math.min(firstPageInCurrentSet + numPagesToShow - 1, totalPages);
+
+    let paginationHtml = '';
+
+    if (firstPageInCurrentSet > 1) {
+        paginationHtml += `
+            <div class="page-box box-number page-arrow-left" data-page-action="prev-set">
+                <p>previous</p>
+            </div>
+        `;
+    }
+
+    for (let i = displayStartPage; i <= displayEndPage; i++) {
+        const isActive = (i === currentPage) ? 'active' : '';
+        paginationHtml += `
+            <div class="page-box box-number ${isActive}" data-page-number="${i}">
+                <p>${i}</p>
+            </div>
+        `;
+    }
+
+    if (displayEndPage < totalPages) {
+        paginationHtml += `
+            <div class="page-box page-arrow-right box-number" data-page-action="next-set">
+                <p>next</p>
+            </div>
+        `;
+    }
+
+
+    pageNumberContainer.innerHTML = paginationHtml;
+}
